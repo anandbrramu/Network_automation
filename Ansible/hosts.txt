@@ -1,0 +1,21 @@
+[ios]
+n7k1 ansible_host=192.168.134.200
+n7k2 ansible_host=192.168.134.201
+
+[ios:vars]
+ansible_user=aramu
+ansible_ssh_pass=bel@1234
+
+[ios1]
+192.168.134.150
+192.168.134.151
+
+[N1]
+192.168.134.200
+
+[N2]
+192.168.134.201
+
+[all:vars]
+ansible_user=cisco
+ansible_ssh_pass=sap@1234
