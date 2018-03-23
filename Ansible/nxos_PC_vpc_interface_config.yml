@@ -1,0 +1,179 @@
+---
+
+- name: nxos VPC configuration
+  hosts: ios
+  connection: local
+  gather_facts: no
+
+
+  tasks:
+
+    ############################################################
+    #  VLAN CONFIGURATION
+    ############################################################
+    - name: ensure VLANs exist on switches
+      nxos_vlan:
+        vlan_range: "2-20,99"
+        state: present 
+
+    - name: ensure names exist for important vlans
+      nxos_vlan:
+        vlan_id: "{{ item.vlan_id }}"
+        name: "{{ item.name }}"
+        vlan_state: active
+        
+      with_items:
+        - { vlan_id: 10, name: 'test_segment' }
+        - { vlan_id: 20, name: 'peer_keepalive' }
+        - { vlan_id: 99, name: 'native' }
+
+    #############################################################
+    # Layer 2 switchport configs
+    #############################################################
+    - name: set interface mode L2
+      nxos_interface:
+        interface: "{{ item }}"
+        mode: layer2
+      with_items:
+        - Ethernet2/2
+        - Ethernet2/3
+        - Ethernet2/4
+        - Ethernet2/15
+
+    - name: L2 config for all ports except peer keepalive
+      nxos_l2_interface: 
+        interface: "{{ item }}"
+        mode: trunk
+        native_vlan: 99 
+        trunk_vlans: 2-20
+        trunk_allowed_vlans: "2-99"        
+      with_items:
+        - Ethernet2/2
+        - Ethernet2/3
+        - Ethernet2/4
+
+    - name: L2 config for peer keepalive link
+      nxos_l2_interface:
+        interface: "{{ item }}"
+        mode: trunk
+        native_vlan: 99
+        trunk_vlans: 20 
+      with_items:
+        - Ethernet2/15
+        
+    #############################################################
+    # Portchannels
+    #############################################################
+  
+    - nxos_portchannel:
+        group: 10
+        members: ['Ethernet2/3','Ethernet2/4']
+        mode: 'active'
+        state: present
+
+    - nxos_portchannel:
+        group: 11
+        members: ['Ethernet2/2']
+        mode: 'active'
+        state: present
+
+    - nxos_portchannel:
+        group: 12
+        members: ['Ethernet2/15']
+        mode: 'active'
+        state: present
+
+
+
+    #############################################################
+    # Layer 3 Configuration
+    #############################################################
+
+    - name: create logical vlan interfaces
+      nxos_interface: 
+        interface: "{{ item }}"
+      with_items:      
+        - vlan10
+        - vlan20
+    
+    - name: ensure VRF for peer keepalive is created
+      nxos_vrf: 
+        vrf: keepalive
+        state: present        
+    
+    - name: assgn VRF to peer keepalive link interfaces
+      nxos_vrf_interface:
+        interface: vlan20
+        vrf: keepalive
+        state: present        
+    - nxos_vrf_af:
+        vrf: keepalive
+        afi: ipv4
+        #route_target_both_auto_evpn: True
+        state: present
+        
+- name: nxos VPC configuration
+  hosts: n7k1
+  connection: local
+  gather_facts: no
+  
+  tasks:
+    - name: assign IP addresses
+      nxos_ip_interface:
+        interface: "{{ item.interface }}"
+        addr: "{{ item.ip }}"
+        mask: "{{ item.mask }}"
+        version: v4
+        state: present
+      with_items:
+        - { interface: vlan20, ip: 1.1.1.100, mask: 24 }
+        - { interface: vlan10, ip: 2.2.2.100, mask: 24 }
+     - name: configure a simple asn
+         nxos_vpc:
+           domain: 100
+           role_priority: 1000
+           system_priority: 2000
+           pkl_dest: 192.168.100.4
+           pkl_src: 10.1.100.20
+           peer_gw: true
+           auto_recovery: true
+         
+
+-  hosts: n7k2
+   connection: local
+   gather_facts: no
+   tasks:
+       - name: assign IP addresses
+         nxos_ip_interface:
+           interface: "{{ item.interface }}"
+           addr: "{{ item.ip }}"
+           mask: "{{ item.mask }}"
+           version: v4
+           state: present
+         with_items:
+           - { interface: vlan20, ip: 1.1.1.101, mask: 24 }
+           - { interface: vlan10, ip: 2.2.2.101, mask: 24 }
+        - name: configure
+            nxos_vpc:
+              domain: 100
+              role_priority: 32667
+              system_priority: 2000
+              peer_gw: true
+              pkl_src: 10.1.100.2
+              pkl_dest: 192.168.100.4
+              auto_recovery: true
+- name: nxos VPC configuration
+  hosts: ios
+  connection: local
+  gather_facts: no
+  tasks:
+   - name: portchannel vpc peer link configuration
+     nxos_vpc_interface:
+       portchannel: 10
+       peer_link: true 
+
+   - name: portchannel vpc  configuration
+     nxos_vpc_interface:
+       portchannel: 11
+       vpc: 11   
+    

@@ -1,0 +1,9 @@
+---
+- hosts: ios
+  connection: local
+  tasks:
+  - name: Ensure a range of VLANs are not present on the switch
+    nxos_vlan:
+      vlan_range: "2-10,20,50,55-60,100-150"
+      state: absent
+      #transport: nxapi

@@ -1,0 +1,9 @@
+---
+- hosts: ios
+  connection: local
+  tasks:
+  - nxos_vrf_af:
+      vrf: ntc
+      afi: ipv4
+      route_target_both_auto_evpn: True
+      state: present

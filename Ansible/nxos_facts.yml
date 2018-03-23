@@ -1,0 +1,12 @@
+---
+- hosts: ios
+  connection: local
+  tasks:
+  - nxos_facts:
+      gather_subset: all
+    register: output
+    tags: [ print_action ]
+    
+  - debug: 
+      msg: " {{ output.stdout }}"
+    

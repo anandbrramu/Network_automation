@@ -1,0 +1,38 @@
+#############################################################
+   # Global VPC Configuration
+   #############################################################
+
+
+  - name: configure a simple asn
+    nxos_vpc:
+      domain: 100
+      role_priority: 1000
+      system_priority: 2000
+      pkl_dest: 192.168.100.4
+      pkl_src: 10.1.100.20
+      peer_gw: true
+      auto_recovery: true
+
+  - name: configure
+    nxos_vpc:
+      domain: 100
+      role_priority: 32667
+      system_priority: 2000
+      peer_gw: true
+      pkl_src: 10.1.100.2
+      pkl_dest: 192.168.100.4
+      auto_recovery: true
+
+   #############################################################
+   # Portchannel VPC Configuration
+   #############################################################
+
+   - name: portchannel vpc peer link configuration
+     nxos_vpc_interface:
+       portchannel: 10
+       peer_link: true 
+
+   - name: portchannel vpc  configuration
+     nxos_vpc_interface:
+       portchannel: 11
+       vpc: 11 

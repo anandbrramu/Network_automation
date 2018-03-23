@@ -1,0 +1,34 @@
+---
+
+- name: nxos VPC configuration
+  hosts: n7k1
+  connection: local
+  gather_facts: no
+  
+  tasks:
+    - name: assign IP addresses
+      nxos_ip_interface:
+        interface: "{{ item.interface }}"
+        addr: "{{ item.ip }}"
+        mask: "{{ item.mask }}"
+        version: v4
+        state: present
+      with_items:
+        - { interface: vlan20, ip: 1.1.1.100, mask: 24 }
+        - { interface: vlan10, ip: 2.2.2.100, mask: 24 }
+
+-  hosts: n7k2
+   connection: local
+   gather_facts: no
+   tasks:
+       - name: assign IP addresses
+         nxos_ip_interface:
+           interface: "{{ item.interface }}"
+           addr: "{{ item.ip }}"
+           mask: "{{ item.mask }}"
+           version: v4
+           state: present
+         with_items:
+           - { interface: vlan20, ip: 1.1.1.101, mask: 24 }
+           - { interface: vlan10, ip: 2.2.2.101, mask: 24 } 
+    

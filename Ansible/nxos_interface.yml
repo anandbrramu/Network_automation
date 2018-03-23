@@ -1,0 +1,11 @@
+---
+- hosts: ios
+  connection: local
+  
+  tasks:
+  - name: Ensure an interface is a Layer 3 port and that it has the proper description
+    nxos_interface:
+      interface: Ethernet2/2
+      description: 'Configured by Ansible'
+      mode: layer3
+      #host: 68.170.147.165

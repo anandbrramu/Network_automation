@@ -1,0 +1,62 @@
+---
+
+- name: nxos VPC configuration
+  hosts: ios
+  connection: local
+  gather_facts: no
+
+
+  tasks:
+
+    ############################################################
+    #  VLAN CONFIGURATION
+    ############################################################
+    - name: ensure VLANs exist on switches
+      nxos_vlan:
+        vlan_range: "2-20,99"
+        state: present 
+
+    - name: ensure names exist for important vlans
+      nxos_vlan:
+        vlan_id: "{{ item.vlan_id }}"
+        name: "{{ item.name }}"
+        vlan_state: active
+        
+      with_items:
+        - { vlan_id: 10, name: 'test_segment' }
+        - { vlan_id: 20, name: 'peer_keepalive' }
+        - { vlan_id: 99, name: 'native' }
+
+    #############################################################
+    # Layer 2 switchport configs
+    #############################################################
+    - name: set interface mode L2
+      nxos_interface:
+        interface: "{{ item }}"
+        mode: layer2
+      with_items:
+        - Ethernet2/2
+        - Ethernet2/3
+        - Ethernet2/4
+        - Ethernet2/15
+
+    - name: L2 config for all ports except peer keepalive
+      nxos_l2_interface: 
+        interface: "{{ item }}"
+        mode: trunk
+        native_vlan: 99 
+        trunk_vlans: 2-20
+        trunk_allowed_vlans: "2-99"        
+      with_items:
+        - Ethernet2/2
+        - Ethernet2/3
+        - Ethernet2/4
+
+    - name: L2 config for peer keepalive link
+      nxos_l2_interface:
+        interface: "{{ item }}"
+        mode: trunk
+        native_vlan: 99
+        trunk_vlans: 20 
+      with_items:
+        - Ethernet2/15

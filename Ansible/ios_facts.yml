@@ -1,0 +1,44 @@
+---
+- hosts: ios1
+  connection: local
+
+  tasks:
+
+#  - name: run show version on remote devices
+#    ios_command:
+#      commands: show version
+#    register: fact
+  - name: run show interface on remote devices
+    ios_command:
+      commands: show ip interface brief
+    register: interface
+#  - debug:
+#      msg: " {{ fact.stdout_lines }} "
+  - debug:
+      msg: " {{ interface.stdout_lines }} "
+  - name: configure interface
+    ios_config:
+       lines:
+          - description configured_by_ansible
+       parents: interface FastEthernet0/0
+# - copy:
+#     content: " {{ fact }} "
+#     dest: "ios_fact.txt"
+#   delegate_to: localhost
+  - name: configure host logging
+    ios_logging:
+      dest: host
+      name: 172.16.0.1
+      state: present
+  - name: save running to startup when modified
+    ios_config:
+      save_when: modified
+  - name: loggin and snmp
+    ios_config:
+      lines:
+        - ntp server 192.168.134.1
+        - snmp-server community public rw
+        - snmp-server enable traps
+  - name: save running to startup when modified
+    ios_config:
+      save_when: modified

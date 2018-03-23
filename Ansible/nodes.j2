@@ -1,0 +1,3 @@
+{% for host in ansible_play_hosts %}
+   {{ hostvars[host].inventory_hostname}}~{{ hostvars[host].fact.ansible_facts.ansible_net_hostname }}~{{ hostvars[host].fact.ansible_facts.ansible_net_serialnum }}~{{ hostvars[host].fact.ansible_facts.os }}
+ {% endfor %}

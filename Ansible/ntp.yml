@@ -1,0 +1,8 @@
+---
+- hosts: ios
+  connection: local
+  tasks:
+  - nxos_ntp:
+      server: 1.2.3.4
+      key_id: 32
+      prefer: enabled
