@@ -30,11 +30,13 @@ if 'login' in response:
     tn.write("end\n")
     tn.write("exit\n")
     print("task completed with login prompt")
-else:
+elif '#' in response:
     for line in file:
         print(line)
         tn.write(line + "\n")
     tn.write("end\n")
     tn.write("exit\n")
     print("task completed without login prompt")
+else:
+    print("unable to conect to console")
 file.close()
